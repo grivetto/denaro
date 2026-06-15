@@ -1,0 +1,2 @@
+# denaro
+trading machine
