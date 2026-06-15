@@ -1,0 +1,20 @@
+{
+  "pairs": ["ADA/EUR", "SOL/EUR"],
+  "primary_pair": "SOL/EUR",
+  "pair_switch_enabled": true,
+  "pair_switch_min_interval_hours": 4,
+  "telegram_enabled": false,
+  "compound_enabled": true,
+  "compound_cap": 1.8,
+  "daily_loss_limit_pct": -5.0,
+  "max_invested_eur": 30.0,
+  "base_order_eur": 5.5,
+  "grid_spacing": 0.003,
+  "profit_pct": 0.004,
+  "min_grid_levels": 3,
+  "max_grid_levels": 6,
+  "rebalance_interval_sec": 180,
+  "momentum_rsi_threshold": 55,
+  "momentum_volume_multiplier": 2.0,
+  "pair_performance_window": 20
+}

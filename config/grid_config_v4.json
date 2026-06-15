@@ -1,0 +1,28 @@
+{
+  "symbol": "SOL/EUR",
+  "grid_levels": 1,
+  "base_order_eur": 10.0,
+  "spacing_mode": "atr_fixed",
+  "atr_factor": 0.75,
+  "atr_timeframe": "15m",
+  "atr_lookback": 14,
+  "atr_spacing_pct": 0.003,
+  "max_total_exposure_eur": 20.0,
+  "kill_switch": {
+    "mode": "portfolio_floor",
+    "portfolio_floor": 195.0,
+    "eur_floor": 105,
+    "max_drawdown_pct": 0.0,
+    "out_of_bounds_pct": 0.05,
+    "trailing_stop_pct": 0.0
+  },
+  "peak_reset_hours": 168,
+  "report_hours_start": 6,
+  "report_hours_end": 23,
+  "report_min_drawdown_alert": 0.5,
+  "grid_mode": "safe_spot",
+  "auto_breakeven": true,
+  "rebalance_threshold_pct": 25.0,
+  "only_sell_above_breakeven": true,
+  "fee_rate": 0.00075
+}

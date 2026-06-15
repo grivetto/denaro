@@ -1,0 +1,15 @@
+{
+  "symbol": "ADAEUR",
+  "symbol_ws": "adaeur",
+  "grid_levels": 6,
+  "grid_range_pct": 0.012,
+  "atr_spacing_factor": 4.0,
+  "profit_per_grid": 0.003,
+  "base_order_eur": 5.0,
+  "max_total_invested": 100.0,
+  "min_order_eur": 8.0,
+  "trailing_stop_pct": 1.5,
+  "trailing_activation_pct": 2.0,
+  "config_reload_sec": 60,
+  "out_of_bounds_threshold": 0.02
+}

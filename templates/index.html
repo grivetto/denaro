@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>denaro-antigravity | Console di Trading</title>
+    
+    <!-- External CDN Resources -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Modern Glassmorphic styling */
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at 50% 50%, #111827 0%, #030712 100%);
+            min-height: 100vh;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: rgba(17, 24, 39, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-card:hover {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glow-cyan {
+            box-shadow: 0 0 25px rgba(6, 182, 212, 0.25);
+        }
+
+        .glow-emerald {
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.25);
+        }
+
+        .glow-rose {
+            box-shadow: 0 0 25px rgba(244, 63, 94, 0.25);
+        }
+
+        /* Ambient glowing background blobs */
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.15;
+            z-index: 0;
+            pointer-events: none;
+            transition: all 1s ease;
+        }
+
+        /* Micro-animations */
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.15; transform: scale(1); }
+            50% { opacity: 0.25; transform: scale(1.15); }
+        }
+
+        .pulse-ambient {
+            animation: pulse-slow 8s infinite ease-in-out;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 relative">
+    <!-- Background Ambient Glows -->
+    <div class="blob w-[400px] h-[400px] bg-cyan-500 top-[-100px] left-[-100px] pulse-ambient"></div>
+    <div class="blob w-[500px] h-[500px] bg-purple-600 bottom-[-200px] right-[-100px] pulse-ambient" style="animation-delay: -3s;"></div>
+
+    <div class="max-w-7xl mx-auto relative z-10">
+        
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row items-center justify-between mb-8 pb-6 border-b border-gray-800/60">
+            <div class="flex items-center gap-4 mb-4 md:mb-0">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-cyan-500/20">
+                    <i class="fa-solid fa-square-nfi"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">denaro-antigravity</h1>
+                    <p class="text-sm text-gray-400">Piattaforma di Trading Quantitativo Autonomo</p>
+                </div>
+            </div>
+            
+            <!-- Global Status Bar -->
+            <div class="flex flex-wrap gap-3">
+                <div class="px-4 py-2 rounded-xl glass-card flex items-center gap-2 text-sm font-semibold">
+                    <i class="fa-solid fa-plug text-cyan-400"></i>
+                    Stato: 
+                    <span id="system-status" class="text-emerald-400 font-bold flex items-center gap-1.5">
+                        <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span> ONLINE
+                    </span>
+                </div>
+                <div class="px-4 py-2 rounded-xl glass-card flex items-center gap-2 text-sm font-semibold">
+                    <i class="fa-solid fa-vial text-amber-400"></i>
+                    Modalità: 
+                    <span id="dry-run-status" class="text-amber-400 font-bold">DRY RUN</span>
+                </div>
+                <div id="halt-warning" class="hidden px-4 py-2 rounded-xl bg-red-950/60 border border-red-500/30 flex items-center gap-2 text-sm font-semibold text-red-400 animate-pulse">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    SISTEMA BLOCCATO (HALTED)
+                </div>
+            </div>
+        </header>
+
+        <!-- Metric Grid -->
+        <section class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <!-- Daily PnL Card -->
+            <div class="p-6 rounded-2xl glass-card relative overflow-hidden group">
+                <div class="absolute -right-4 -bottom-4 text-gray-800/20 text-7xl transition-all duration-300 group-hover:scale-110">
+                    <i class="fa-solid fa-coins"></i>
+                </div>
+                <p class="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">PnL Giornaliero Netto</p>
+                <h3 id="pnl-daily" class="text-3xl font-bold font-mono tracking-tight text-gray-200">0.0000 USD</h3>
+                <p id="pnl-daily-pct" class="text-sm text-gray-500 mt-1 font-semibold">0.00% dell'equity di avvio</p>
+            </div>
+
+            <!-- Win Rate Card -->
+            <div class="p-6 rounded-2xl glass-card relative overflow-hidden group">
+                <div class="absolute -right-4 -bottom-4 text-gray-800/20 text-7xl transition-all duration-300 group-hover:scale-110">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+                <p class="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Tasso di Successo</p>
+                <h3 id="win-rate" class="text-3xl font-bold font-mono tracking-tight text-emerald-400">0.0%</h3>
+                <p id="wins-losses" class="text-sm text-gray-400 mt-1">0 Wins / 0 Losses</p>
+            </div>
+
+            <!-- Total PnL Card -->
+            <div class="p-6 rounded-2xl glass-card relative overflow-hidden group">
+                <div class="absolute -right-4 -bottom-4 text-gray-800/20 text-7xl transition-all duration-300 group-hover:scale-110">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <p class="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Profitto Totale</p>
+                <h3 id="pnl-total" class="text-3xl font-bold font-mono tracking-tight text-gray-200">0.0000 USD</h3>
+                <p id="trade-count" class="text-sm text-gray-400 mt-1">0 Operazioni totali</p>
+            </div>
+
+            <!-- Max Daily Drawdown Guard -->
+            <div class="p-6 rounded-2xl glass-card relative overflow-hidden group">
+                <div class="absolute -right-4 -bottom-4 text-gray-800/20 text-7xl transition-all duration-300 group-hover:scale-110">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <p class="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1">Protezione Drawdown</p>
+                <div class="flex items-end justify-between mt-1">
+                    <h3 id="drawdown-guard" class="text-3xl font-bold font-mono tracking-tight text-cyan-400">0.0%</h3>
+                    <span class="text-xs text-gray-500 mb-1">Limite: 5.0%</span>
+                </div>
+                <!-- Progress bar -->
+                <div class="w-full bg-gray-800 rounded-full h-1.5 mt-2">
+                    <div id="drawdown-progress" class="bg-cyan-500 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Dashboard Split Layout -->
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            
+            <!-- Left 2 Cols: Strategies and Charts -->
+            <div class="lg:col-span-2 space-y-8">
+                
+                <!-- Chart Section -->
+                <section class="p-6 rounded-3xl glass-card relative">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-area text-cyan-400"></i> Equity Curve & PnL Storico
+                    </h3>
+                    <div class="h-[280px]">
+                        <canvas id="equityChart"></canvas>
+                    </div>
+                </section>
+
+                <!-- Active Strategies Section -->
+                <section class="p-6 rounded-3xl glass-card">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center justify-between">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-robot text-purple-400"></i> Strategie di Scalping e Griglia</span>
+                        <span id="strategies-count" class="text-xs bg-purple-500/20 text-purple-400 px-2.5 py-1 rounded-full font-bold">2 Attive</span>
+                    </h3>
+                    <div id="strategies-container" class="space-y-4">
+                        <!-- Strategy Cards injected dynamically -->
+                        <div class="animate-pulse flex space-x-4 p-4 bg-gray-800/20 rounded-xl">
+                            <div class="flex-1 space-y-4 py-1">
+                                <div class="h-4 bg-gray-700/40 rounded w-3/4"></div>
+                                <div class="space-y-2">
+                                    <div class="h-4 bg-gray-700/40 rounded"></div>
+                                    <div class="h-4 bg-gray-700/40 rounded w-5/6"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- Right Col: Controls, Balances and Trades -->
+            <div class="space-y-8">
+                
+                <!-- Quick Control Room -->
+                <section class="p-6 rounded-3xl glass-card">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-indigo-400"></i> Pannello di Controllo
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button onclick="triggerAction('resume')" class="p-3 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 hover:border-emerald-500/50 rounded-2xl flex flex-col items-center gap-2 transition-all font-semibold text-emerald-400">
+                            <i class="fa-solid fa-play text-lg"></i>
+                            <span>Avvia Bot</span>
+                        </button>
+                        <button onclick="triggerAction('pause')" class="p-3 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 hover:border-amber-500/50 rounded-2xl flex flex-col items-center gap-2 transition-all font-semibold text-amber-400">
+                            <i class="fa-solid fa-pause text-lg"></i>
+                            <span>Pausa Bot</span>
+                        </button>
+                        <button onclick="triggerAction('grid_reset')" class="p-3 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 hover:border-indigo-500/50 rounded-2xl flex flex-col items-center gap-2 transition-all font-semibold text-indigo-300">
+                            <i class="fa-solid fa-arrows-rotate text-lg"></i>
+                            <span>Reset Griglia</span>
+                        </button>
+                        <button onclick="triggerAction('halt')" class="p-3 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 hover:border-rose-500/50 rounded-2xl flex flex-col items-center gap-2 transition-all font-semibold text-rose-400 col-span-2">
+                            <i class="fa-solid fa-circle-stop text-lg"></i>
+                            <span>ARRESTO D'EMERGENZA</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Balance Breakdown -->
+                <section class="p-6 rounded-3xl glass-card">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-sack-dollar text-emerald-400"></i> Saldo Portafoglio
+                    </h3>
+                    <div id="balances-container" class="space-y-3 font-mono text-sm">
+                        <!-- Balances injected dynamically -->
+                    </div>
+                </section>
+
+                <!-- Recent Trades Feed -->
+                <section class="p-6 rounded-3xl glass-card">
+                    <h3 class="text-lg font-semibold mb-3 flex items-center justify-between">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-list-check text-cyan-400"></i> Storico Trade</span>
+                        <span class="text-xs text-gray-500">Ultimi 20</span>
+                    </h3>
+                    <div id="trades-container" class="max-h-[300px] overflow-y-auto space-y-3 pr-2">
+                        <!-- Trades injected dynamically -->
+                    </div>
+                </section>
+
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="text-center text-gray-600 text-xs py-6 mt-8 border-t border-gray-900">
+            <p>denaro-antigravity trading bot engine v2.0 • Sviluppato per Sergio Grivetto</p>
+        </footer>
+
+    </div>
+
+    <!-- UI Core Logic and Chart.js initialization -->
+    <script>
+        let chart = null;
+
+        async function triggerAction(action) {
+            if (action === 'halt' && !confirm("Sei sicuro di voler fermare completamente e mettere in pausa TUTTE le strategie di trading?")) {
+                return;
+            }
+            try {
+                const response = await fetch(`/api/action/${action}`, { method: 'POST' });
+                const res = await response.json();
+                alert(res.message);
+                updateDashboard();
+            } catch (e) {
+                alert(`Azione fallita: ${e}`);
+            }
+        }
+
+        function formatUSD(val) {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 4 }).format(val);
+        }
+
+        function updateChart(trades) {
+            if (!trades || trades.length === 0) return;
+            
+            // Generate cumulative PnL dataset from history trades
+            let cumulative = 0;
+            const labels = [];
+            const data = [];
+            
+            // Sort trades chronologically
+            const sortedTrades = [...trades].reverse();
+            
+            sortedTrades.forEach((t, idx) => {
+                if (t.net_pnl !== null) {
+                    cumulative += t.net_pnl;
+                    labels.push(new Date(t.filled_at).toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'}));
+                    data.push(cumulative);
+                }
+            });
+
+            if (!chart) {
+                const ctx = document.getElementById('equityChart').getContext('2d');
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'PnL Cumulativo (USD)',
+                            data: data,
+                            borderColor: '#06b6d4',
+                            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            x: {
+                                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                                ticks: { color: '#9ca3af' }
+                            },
+                            y: {
+                                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                                ticks: { color: '#9ca3af' }
+                            }
+                        }
+                    }
+                });
+            } else {
+                chart.data.labels = labels;
+                chart.data.datasets[0].data = data;
+                chart.update();
+            }
+        }
+
+        async function updateDashboard() {
+            try {
+                const res = await fetch('/api/state');
+                const state = await res.json();
+                
+                // System indicators
+                const isHalted = state.system.is_halted;
+                const dryRun = state.system.dry_run;
+                const dailyPnl = state.system.daily_pnl;
+                
+                document.getElementById('dry-run-status').innerText = dryRun ? "DRY RUN" : "LIVE ACTIVE";
+                document.getElementById('dry-run-status').className = dryRun ? "text-amber-400 font-bold" : "text-red-500 font-bold animate-pulse";
+                
+                if (isHalted) {
+                    document.getElementById('halt-warning').classList.remove('hidden');
+                    document.getElementById('system-status').innerHTML = '<span class="inline-block w-2.5 h-2.5 rounded-full bg-red-500"></span> HALTED';
+                    document.getElementById('system-status').className = "text-red-400 font-bold flex items-center gap-1.5";
+                } else {
+                    document.getElementById('halt-warning').classList.add('hidden');
+                    document.getElementById('system-status').innerHTML = '<span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span> ONLINE';
+                    document.getElementById('system-status').className = "text-emerald-400 font-bold flex items-center gap-1.5";
+                }
+
+                // Daily PnL
+                const pnlEl = document.getElementById('pnl-daily');
+                pnlEl.innerText = `${dailyPnl >= 0 ? '+' : ''}${dailyPnl.toFixed(4)} USD`;
+                pnlEl.className = `text-3xl font-bold font-mono tracking-tight ${dailyPnl >= 0 ? 'text-emerald-400 glow-emerald' : 'text-rose-500 glow-rose'}`;
+                
+                const baseCapital = state.system.dry_run ? 49.0 : state.strategies.reduce((acc, s) => acc + s.capital, 0);
+                const dailyPct = (dailyPnl / baseCapital) * 100;
+                document.getElementById('pnl-daily-pct').innerText = `${dailyPct >= 0 ? '+' : ''}${dailyPct.toFixed(2)}% del capitale`;
+                
+                // Win rate and stats
+                const s = state.stats;
+                document.getElementById('win-rate').innerText = `${s.win_rate.toFixed(1)}%`;
+                document.getElementById('wins-losses').innerText = `${s.wins} Wins / ${s.losses} Losses`;
+                
+                // Total profit
+                const pnlTotEl = document.getElementById('pnl-total');
+                pnlTotEl.innerText = `${s.total_pnl >= 0 ? '+' : ''}${s.total_pnl.toFixed(4)} USD`;
+                pnlTotEl.className = `text-3xl font-bold font-mono tracking-tight ${s.total_pnl >= 0 ? 'text-emerald-400' : 'text-rose-500'}`;
+                document.getElementById('trade-count').innerText = `${s.count} Operazioni completate`;
+
+                // Drawdown protection
+                const drawdown = Math.min(Math.max((-dailyPnl / baseCapital) * 100, 0), 100);
+                document.getElementById('drawdown-guard').innerText = `${drawdown.toFixed(2)}%`;
+                const prg = document.getElementById('drawdown-progress');
+                prg.style.width = `${Math.min(drawdown / 5.0 * 100, 100)}%`;
+                if (drawdown >= 4.0) {
+                    prg.className = "bg-rose-500 h-1.5 rounded-full transition-all duration-500";
+                } else if (drawdown >= 2.5) {
+                    prg.className = "bg-amber-500 h-1.5 rounded-full transition-all duration-500";
+                } else {
+                    prg.className = "bg-cyan-500 h-1.5 rounded-full transition-all duration-500";
+                }
+
+                // Balance Rendering
+                const balCont = document.getElementById('balances-container');
+                balCont.innerHTML = "";
+                for (const [exName, assets] of Object.entries(state.balances)) {
+                    const rowGroup = document.createElement('div');
+                    rowGroup.className = "mb-2 border-b border-gray-800/40 pb-2";
+                    rowGroup.innerHTML = `<h4 class="text-xs uppercase text-gray-500 font-bold mb-1"><i class="fa-solid fa-server text-indigo-400"></i> ${exName}</h4>`;
+                    
+                    for (const [asset, freeAmt] of Object.entries(assets)) {
+                        if (freeAmt > 0.0001 || asset === 'USDT' || asset === 'EUR') {
+                            const row = document.createElement('div');
+                            row.className = "flex justify-between py-0.5 text-gray-300";
+                            row.innerHTML = `<span>${asset}</span><span class="font-bold text-gray-100">${freeAmt.toFixed(4)}</span>`;
+                            rowGroup.appendChild(row);
+                        }
+                    }
+                    balCont.appendChild(rowGroup);
+                }
+
+                // Active Strategies Card Injector
+                const stratCont = document.getElementById('strategies-container');
+                stratCont.innerHTML = "";
+                document.getElementById('strategies-count').innerText = `${state.strategies.length} Attive`;
+
+                state.strategies.forEach(st => {
+                    const card = document.createElement('div');
+                    card.className = "p-4 bg-gray-900/40 rounded-2xl border border-gray-800/50 hover:border-gray-700/60 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4";
+                    
+                    const isGrid = st.name === "GridTrader";
+                    const icon = isGrid ? 'fa-table-cells' : 'fa-wave-square';
+                    const color = isGrid ? 'text-amber-400' : 'text-cyan-400';
+                    
+                    let strategyDetails = "";
+                    if (isGrid && st.grid) {
+                        strategyDetails = `
+                            <div class="mt-2 grid grid-cols-3 gap-2 text-xs font-mono text-gray-400">
+                                <div>Centro: <span class="text-gray-200">${st.grid.mid_price.toFixed(4)}</span></div>
+                                <div>Livelli Buy: <span class="text-emerald-400">${st.grid.open_buys}</span></div>
+                                <div>Livelli Sell: <span class="text-rose-400">${st.grid.open_sells}</span></div>
+                            </div>
+                        `;
+                    }
+                    
+                    const statusText = st.is_paused ? '⏸ PAUSATO' : '▶ ESECUZIONE';
+                    const statusClass = st.is_paused ? 'text-amber-400 bg-amber-500/10' : 'text-emerald-400 bg-emerald-500/10';
+
+                    card.innerHTML = `
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2.5">
+                                <i class="fa-solid ${icon} ${color} text-lg"></i>
+                                <h4 class="font-bold text-gray-100">${st.name} <span class="text-xs text-gray-400 font-mono">(${st.symbol})</span></h4>
+                                <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${statusClass}">${statusText}</span>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-1">Capitale Allocato: <b>${st.capital.toFixed(2)} EUR</b></p>
+                            ${strategyDetails}
+                        </div>
+                        <div class="flex items-center gap-4 border-t md:border-t-0 border-gray-800/60 pt-2 md:pt-0">
+                            <div class="text-right">
+                                <p class="text-xs text-gray-500 uppercase font-semibold">Posizioni</p>
+                                <p class="text-lg font-bold font-mono text-gray-200">${st.positions_count}</p>
+                            </div>
+                        </div>
+                    `;
+                    stratCont.appendChild(card);
+                });
+
+                // Trade History Injector
+                const tradeCont = document.getElementById('trades-container');
+                tradeCont.innerHTML = "";
+                
+                if (state.recent_trades.length === 0) {
+                    tradeCont.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">Nessuna operazione registrata</p>`;
+                } else {
+                    state.recent_trades.forEach(t => {
+                        const row = document.createElement('div');
+                        row.className = "p-2.5 bg-gray-900/30 rounded-xl border border-gray-800/40 text-xs flex justify-between items-center";
+                        
+                        const isBuy = t.side.toLowerCase() === 'buy';
+                        const sideText = isBuy ? 'BUY' : 'SELL';
+                        const sideClass = isBuy ? 'text-emerald-400 bg-emerald-500/10' : 'text-rose-400 bg-rose-500/10';
+                        
+                        const pnlVal = t.net_pnl || 0.0;
+                        const pnlText = pnlVal >= 0 ? `+${pnlVal.toFixed(4)}` : pnlVal.toFixed(4);
+                        const pnlClass = pnlVal >= 0 ? 'text-emerald-400' : 'text-rose-400';
+                        
+                        row.innerHTML = `
+                            <div>
+                                <span class="px-1.5 py-0.5 rounded font-bold ${sideClass}">${sideText}</span>
+                                <span class="font-bold text-gray-300 ml-1.5">${t.symbol}</span>
+                                <p class="text-[10px] text-gray-500 mt-0.5">${t.strategy} • ${new Date(t.filled_at).toLocaleTimeString('it-IT')}</p>
+                            </div>
+                            <div class="text-right font-mono">
+                                <span class="text-gray-300">${t.amount.toFixed(4)} @ ${t.price.toFixed(3)}</span>
+                                <p class="font-bold ${pnlClass} mt-0.5">${pnlText} USD</p>
+                            </div>
+                        `;
+                        tradeCont.appendChild(row);
+                    });
+                }
+
+                // Update charts
+                updateChart(state.recent_trades);
+
+            } catch (e) {
+                console.error("Dashboard refresh error: ", e);
+            }
+        }
+
+        // Initialize dashboard and update loops
+        updateDashboard();
+        setInterval(updateDashboard, 5000);
+    </script>
+</body>
+</html>

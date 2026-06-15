@@ -1,0 +1,10 @@
+{
+  "symbol": "BTCUSDT",
+  "window": 50,
+  "sigma": 2.0,
+  "entry_sigma": 2.5,
+  "max_position_eur": 5,
+  "max_drawdown_eur": 5,
+  "test_mode": true,
+  "fake_data": true
+}

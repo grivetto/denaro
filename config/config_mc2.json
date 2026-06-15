@@ -1,0 +1,10 @@
+{
+    "max_exposure": 33.0,
+    "max_concurrent": 3,
+    "trade_capital": 500.0,
+    "risk_per_trade": 0.01,
+    "rsi_oversold": 30,
+    "volume_multiplier": 1.5,
+    "tp_atr_multiplier": 1.5,
+    "sl_atr_multiplier": 2.0
+}

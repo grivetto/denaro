@@ -1,0 +1,12 @@
+{
+    "symbol": "XRP/EUR",
+    "symbol_ws": "xrpeur",
+    "base_order_eur": 15.0,
+    "max_total_invested": 50.0,
+    "grid_levels": 8,
+    "profit_pct": 0.015,
+    "grid_range_pct": 0.08,
+    "config_reload_sec": 600,
+    "martingale_multiplier": 1.2,
+    "min_notional": 5.0
+}

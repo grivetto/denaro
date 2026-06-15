@@ -1,0 +1,21 @@
+{
+    "primary_symbol": "ADA/EUR",
+    "backup_symbol": "SOL/EUR",
+    "base_order_eur": 7.0,
+    "max_invested_eur": 25.0,
+    "min_volatility_pct": 0.5,
+    "portfolio_floor": 35.0,
+    "max_drawdown_pct": 10.0,
+    "regime_check_interval": 300,
+    "fill_check_interval": 15,
+    "report_interval": 3600,
+    "pair_switch_cooldown": 14400,
+    "regime": {
+        "bull": {"grid_levels": 5, "spacing_pct": 0.012, "profit_pct": 0.005, "max_invested": 30.0},
+        "bear": {"grid_levels": 2, "spacing_pct": 0.02, "profit_pct": 0.007, "max_invested": 8.0},
+        "choppy": {"grid_levels": 3, "spacing_pct": 0.006, "profit_pct": 0.003, "max_invested": 15.0},
+        "neutral": {"grid_levels": 3, "spacing_pct": 0.01, "profit_pct": 0.004, "max_invested": 18.0},
+        "volatile": {"grid_levels": 2, "spacing_pct": 0.025, "profit_pct": 0.008, "max_invested": 12.0},
+        "unknown": {"grid_levels": 2, "spacing_pct": 0.01, "profit_pct": 0.004, "max_invested": 12.0}
+    }
+}

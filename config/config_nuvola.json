@@ -1,0 +1,18 @@
+{
+    "symbol": "SOL/EUR",
+    "base_order_eur": 8.0,
+    "max_invested_eur": 30.0,
+    "portfolio_floor": 45.0,
+    "max_drawdown_pct": 8.0,
+    "regime_check_interval": 300,
+    "fill_check_interval": 10,
+    "report_interval": 3600,
+    "regime": {
+        "bull": {"grid_levels": 6, "spacing_pct": 0.015, "profit_pct": 0.004, "max_invested": 40.0},
+        "bear": {"grid_levels": 2, "spacing_pct": 0.025, "profit_pct": 0.006, "max_invested": 10.0},
+        "choppy": {"grid_levels": 4, "spacing_pct": 0.008, "profit_pct": 0.003, "max_invested": 20.0},
+        "neutral": {"grid_levels": 3, "spacing_pct": 0.012, "profit_pct": 0.004, "max_invested": 20.0},
+        "volatile": {"grid_levels": 3, "spacing_pct": 0.03, "profit_pct": 0.008, "max_invested": 15.0},
+        "unknown": {"grid_levels": 2, "spacing_pct": 0.01, "profit_pct": 0.004, "max_invested": 15.0}
+    }
+}
